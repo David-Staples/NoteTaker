@@ -1,6 +1,7 @@
 package com.example.notetaker.view
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -15,6 +16,9 @@ import com.example.notetaker.util.Constants
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.color_item_view_layout.*
 
+const val COLOR_KEY = "notetaker.color"
+const val DEFAULT_COLOR = "WHITE"
+
 class MainActivity : AppCompatActivity(), ColorAdapter.colorAdapterDelegator {
 
     private lateinit var sharedPreferences: SharedPreferences
@@ -22,8 +26,11 @@ class MainActivity : AppCompatActivity(), ColorAdapter.colorAdapterDelegator {
 
     override fun colorPicked(colorResource: String) {
         setUpColor(colorResource)
-        spEditor.putString("my_app_color", colorResource)
-        spEditor.commit()
+        spEditor.putString(COLOR_KEY, colorResource)
+        spEditor.apply()
+        Intent(this, EditNotesActivity::class.java).apply{
+            startActivity(this)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,16 +38,20 @@ class MainActivity : AppCompatActivity(), ColorAdapter.colorAdapterDelegator {
         setContentView(R.layout.activity_main)
 
 
-        sharedPreferences = this.getSharedPreferences("color_app_101", 0)
+        sharedPreferences = this.getSharedPreferences(
+            applicationContext.packageName,
+            Context.MODE_PRIVATE
+        )
+
         spEditor = sharedPreferences.edit()
 
-        setUpColor(sharedPreferences.getString("my_app_color", "WHITE"))
+        val colorRetrieved = sharedPreferences.getString(COLOR_KEY, DEFAULT_COLOR)  ?: DEFAULT_COLOR
 
         setUpRV()
     }
 
     fun setUpRV() {
-        color_recyclerview.adapter = ColorAdapter (
+        color_recyclerview.adapter = ColorAdapter(
             mutableListOf(
                 Constants.COLOR_BLUE,
                 Constants.COLOR_YELLOW,
